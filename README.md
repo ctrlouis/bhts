@@ -1,6 +1,6 @@
 # BHTS - Bee Hive Temperature Sensor
 
-The project is to save temperature inside different kind of hive to determine with isoliation is the best.
+The project goal is to save temperature inside different kind of hive to determine with isoliation is the best.
 
 ## 🛠️ Hardware
 
@@ -10,6 +10,11 @@ The project is to save temperature inside different kind of hive to determine wi
 ## 🧐 Features
 
 - Read temperature with arduino mkr 1010 wifi + tmp36 sensor
+
+## 🛠️ Installation
+
+1. Modify [sketch/arduino_secrets.h.sample](sketch/arduino_secrets.h.sample) and rename it to `arduino_secrets.h`
+2. Modify [.env.sample](.env.sample) and rename it to `.env`
 
 ## 🙇 Acknowledgements
 
