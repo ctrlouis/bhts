@@ -18,4 +18,5 @@ The project goal is to save temperature inside different kind of hive to determi
 
 ## 🙇 Acknowledgements
 
-- [https://www.influxdata.com/blog/how-to-send-sensor-data-to-influxdb-from-an-arduino-uno/](https://www.influxdata.com/blog/how-to-send-sensor-data-to-influxdb-from-an-arduino-uno/)
+- [https://docs.influxdata.com/influxdb/cloud/api-guide/client-libraries/arduino/](https://docs.influxdata.com/influxdb/cloud/api-guide/client-libraries/arduino/)
+- [https://github.com/tobiasschuerg/InfluxDB-Client-for-Arduino](https://github.com/tobiasschuerg/InfluxDB-Client-for-Arduino)
