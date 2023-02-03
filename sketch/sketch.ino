@@ -2,8 +2,8 @@
 #include "arduino_secrets.h"
 
 // wifi setup
-char ssid[] = SECRET_SSID;
-char pass[] = SECRET_PASS;
+char ssid[] = SECRET_WIFI_SSID;
+char pass[] = SECRET_WIFI_PASS;
 int status = WL_IDLE_STATUS;
 
 // temperature sensor setup
@@ -18,7 +18,7 @@ void setup() {
   wifiConnect(ssid, pass);
 }
 
-void loop() {
+void loop() { 
   float temperature;
 
   temperature = getTemperature(sensorPin, maxVoltage);
