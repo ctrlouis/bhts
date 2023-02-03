@@ -4,7 +4,7 @@ services:
 
     influxdb:
         image: influxdb:2.6-alpine
-        container_name: "temp_influxdb"
+        container_name: "bhts_influxdb"
         env_file:
             - .env
         ports:
@@ -14,7 +14,7 @@ services:
 
     grafana:
         image: grafana/grafana-oss
-        container_name: "temp_grafana"
+        container_name: "bhts_grafana"
         env_file:
             - .env
         ports:
