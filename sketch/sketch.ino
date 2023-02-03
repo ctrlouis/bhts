@@ -42,7 +42,6 @@ void printTemperature(float temperature) {
   message = String(temperature);
   message += "°C";
   Serial.println(message);
-
 }
 
 void wifiConnect(char ssid[], char pass[]) {
