@@ -66,14 +66,11 @@ void printTemperature(float temperature) {
 
 void saveTemp() {
   String authHeader, data, path;
-
-  Serial.println("making POST request");
   
   authHeader = "Token ";
   authHeader += SECRET_INFLUXDB_TOKEN;
-
-  path = "/api/v2/write?bucket=arduino&org=bhts&precision=ns";
-  data = "cpu_load_short,host=server01,region=us-west value=0.64 14340555620000000";
+  path = "/api/v2/write?bucket=arduino&org=bhts&precision=s";
+  data = "temperaturesSensors,sensorPin=10,sensorLocation=in temperature=22 1675479682";
 
   client.beginRequest();
   client.post(path);
@@ -92,9 +89,6 @@ void saveTemp() {
   Serial.println(statusCode);
   Serial.print("Response: ");
   Serial.println(response);
-
-  Serial.println("Wait five seconds");
-  delay(5000);
 }
 
 void wifiConnectt(char ssid[], char pass[]) {
