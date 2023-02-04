@@ -1,5 +1,17 @@
+#ifndef ArduinoHttpClient_h
+#define ArduinoHttpClient_h
+
+#include "HttpClient.h"
+#include "WebSocketClient.h"
+
+#endif
+
 #include <WiFiNINA.h>
 #include "arduino_secrets.h"
+
+#define INFLUXDB_URL "http://localhost:8086"
+#define INFLUXDB_ORG "bhts"
+#define INFLUXDB_BUCKET "arduino"
 
 // wifi setup
 char ssid[] = SECRET_WIFI_SSID;
@@ -11,11 +23,18 @@ const int sensorPin = A0;
 const float maxVoltage = 3.3;
 float temp;
 
+char serverAddress[] = "192.168.1.21";  // server address
+int port = 8086;
+
+WiFiClient wifi;
+HttpClient client = HttpClient(wifi, serverAddress, port);
+
 void setup() {
   // Initialize serial and wait for port to open:
   Serial.begin(9600);
   while (!Serial);
-  wifiConnect(ssid, pass);
+  wifiConnectt(ssid, pass);
+  
 }
 
 void loop() { 
@@ -23,6 +42,7 @@ void loop() {
 
   temperature = getTemperature(sensorPin, maxVoltage);
   printTemperature(temperature);
+  saveTemp();
   delay(500);
 }
 
@@ -44,6 +64,58 @@ void printTemperature(float temperature) {
   Serial.println(message);
 }
 
+void saveTemp() {
+  String authHeader, data, path;
+
+  Serial.println("making POST request");
+  
+  authHeader = "Token ";
+  authHeader += SECRET_INFLUXDB_TOKEN;
+
+  path = "/api/v2/write?bucket=arduino&org=bhts&precision=ns";
+  data = "cpu_load_short,host=server01,region=us-west value=0.64 14340555620000000";
+
+  client.beginRequest();
+  client.post(path);
+  client.sendHeader("Content-Type", "text/plain");
+  client.sendHeader("Content-Length", data.length());
+  client.sendHeader("Authorization", authHeader);
+  client.beginBody();
+  client.print(data);
+  client.endRequest();
+
+  // read the status code and body of the response
+  int statusCode = client.responseStatusCode();
+  String response = client.responseBody();
+
+  Serial.print("Status code: ");
+  Serial.println(statusCode);
+  Serial.print("Response: ");
+  Serial.println(response);
+
+  Serial.println("Wait five seconds");
+  delay(5000);
+}
+
+void wifiConnectt(char ssid[], char pass[]) {
+  while ( status != WL_CONNECTED) {
+    Serial.print("Attempting to connect to Network named: ");
+    Serial.println(ssid);                   // print the network name (SSID);
+
+    // Connect to WPA/WPA2 network:
+    status = WiFi.begin(ssid, pass);
+  }
+
+  // print the SSID of the network you're attached to:
+  Serial.print("SSID: ");
+  Serial.println(WiFi.SSID());
+
+  // print your WiFi shield's IP address:
+  IPAddress ip = WiFi.localIP();
+  Serial.print("IP Address: ");
+  Serial.println(ip);
+}
+
 void wifiConnect(char ssid[], char pass[]) {
   // attempt to connect to Wifi network:
   while (status != WL_CONNECTED) {
@@ -53,8 +125,8 @@ void wifiConnect(char ssid[], char pass[]) {
     // Connect to WPA/WPA2 network:
     status = WiFi.begin(ssid, pass);
 
-    // wait 10 seconds for connection:
-    delay(10000);
+    // wait 5 seconds for connection:
+    delay(5000);
   }
 
   // you're connected now, so print out the data:
