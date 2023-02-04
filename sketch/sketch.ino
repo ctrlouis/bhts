@@ -42,8 +42,7 @@ void loop() {
 
   temperature = getTemperature(sensorPin, maxVoltage);
   printTemperature(temperature);
-  saveTemp();
-  delay(500);
+  saveTemp(temperature);
 }
 
 float getTemperature(int pin, float maxVoltage) {
@@ -64,13 +63,16 @@ void printTemperature(float temperature) {
   Serial.println(message);
 }
 
-void saveTemp() {
+void saveTemp(float temperature) {
   String authHeader, data, path;
   
   authHeader = "Token ";
   authHeader += SECRET_INFLUXDB_TOKEN;
-  path = "/api/v2/write?bucket=arduino&org=bhts&precision=s";
-  data = "temperaturesSensors,sensorPin=10,sensorLocation=in temperature=22 1675479682";
+  path = "/api/v2/write?bucket=arduino&org=bhts&precision=ns";
+  data = "temperaturesSensors,sensorPin=";
+  data += String(sensorPin);
+  data += ",sensorLocation=in temperature=";
+  data += temperature;
 
   client.beginRequest();
   client.post(path);
@@ -86,8 +88,8 @@ void saveTemp() {
   String response = client.responseBody();
 
   Serial.print("Status code: ");
-  Serial.println(statusCode);
-  Serial.print("Response: ");
+  Serial.print(statusCode);
+  Serial.print(", Response: ");
   Serial.println(response);
 }
 
