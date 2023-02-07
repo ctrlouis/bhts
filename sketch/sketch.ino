@@ -10,35 +10,38 @@
 #include "arduino_env.h"
 #include "TemperatureSensor.h"
 
+const float maxAnalogValue = pow(2 ,ANALOG_READ_RESOLUTION);
+
 // wifi setup
-char ssid[] = SECRET_WIFI_SSID;
-char pass[] = SECRET_WIFI_PASS;
-int status = WL_IDLE_STATUS;
+int statusWifi = WL_IDLE_STATUS;
 
 // temperature sensor setup
 TemperatureSensor const sensors[1] = {
   TemperatureSensor(A0, "outside"),
 };
 const int temperatureSensorSize = sizeof(sensors) / sizeof(sensors[0]);
-float temp;
 
 char serverAddress[15] = "192.168.1.21";  // server address
 int port = 8086;
 
 WiFiClient wifi;
-HttpClient client = HttpClient(wifi, SECRET_INFLUXDB_ADDRESS, SECRET_INFLUXDB_PORT);
+HttpClient influxClient = HttpClient(wifi, SECRET_INFLUXDB_ADDRESS, SECRET_INFLUXDB_PORT);
 
 void setup() {
+  analogReadResolution(ANALOG_READ_RESOLUTION);
+  bool dbAvailable = false;
   // Initialize serial and wait for port to open:
   Serial.begin(9600);
   while (!Serial);
-  wifiConnect(ssid, pass);
+  wifiConnect(SECRET_WIFI_SSID, SECRET_WIFI_PASS);
+
+  while (!dbAvailable) {
+    dbAvailable = testInfluxAccess();
+  }
 }
 
-void loop() { 
+void loop() {
   float temperatures[sizeof(sensors)];
-  Serial.print("sizeof(sensors) = ");
-  Serial.println(temperatureSensorSize);
   
   for (int i = 0; i < 1; i++) {
     temperatures[i] = getTemperature(sensors[i].pin, SENSOR_VOLTAGE);
@@ -53,7 +56,7 @@ float getTemperature(int pin, float SENSOR_VOLTAGE) {
   float voltage, temperature;
   
   sensorVal = analogRead(pin);
-  voltage = (sensorVal/1024.0) * SENSOR_VOLTAGE;
+  voltage = (sensorVal/maxAnalogValue) * SENSOR_VOLTAGE;
   temperature = (voltage - .5) * 100;
   return temperature;
 }
@@ -64,6 +67,20 @@ void printTemperature(float temperature) {
   message = String(temperature);
   message += "°C";
   Serial.println(message);
+}
+
+bool testInfluxAccess() {
+  bool available = false;
+  int statusCode;
+  
+  String path = "/ping";
+  influxClient.get(path);
+  statusCode = influxClient.responseStatusCode();
+  Serial.println("Attempting to connect to InfluxDB ");
+  if (statusCode == 204) {
+    available = true;
+  }
+  return available;
 }
 
 void saveTemp(int sensorPin, float temperature, bool waitResponse) {
@@ -83,34 +100,30 @@ void saveTemp(int sensorPin, float temperature, bool waitResponse) {
   data += ",sensorLocation=in temperature=";
   data += temperature;
 
-  client.beginRequest();
-  client.post(path);
-  client.sendHeader("Content-Type", "text/plain");
-  client.sendHeader("Content-Length", data.length());
-  client.sendHeader("Authorization", authHeader);
-  client.beginBody();
-  client.print(data);
-  client.endRequest();
+  influxClient.beginRequest();
+  influxClient.post(path);
+  influxClient.sendHeader("Content-Type", "text/plain");
+  influxClient.sendHeader("Content-Length", data.length());
+  influxClient.sendHeader("Authorization", authHeader);
+  influxClient.beginBody();
+  influxClient.print(data);
+  influxClient.endRequest();
 
-  if (waitResponse = true) {
-    // read the status code and body of the response
-    int statusCode = client.responseStatusCode();
-    String response = client.responseBody();
-    Serial.print("Status code: ");
-    Serial.print(statusCode);
-    Serial.print(", Response: ");
-    Serial.println(response);
+  if (waitResponse == true) {
+    int statusCode = influxClient.responseStatusCode();
+    String response = influxClient.responseBody();
+    printStatusCode(statusCode, response);
   }
-  
+
 }
 
 void wifiConnect(char ssid[], char pass[]) {
-  while ( status != WL_CONNECTED) {
+  while ( statusWifi != WL_CONNECTED) {
     Serial.print("Attempting to connect to Network named: ");
-    Serial.println(ssid);                   // print the network name (SSID);
+    Serial.println(ssid); // print the network name (SSID);
 
     // Connect to WPA/WPA2 network:
-    status = WiFi.begin(ssid, pass);
+    statusWifi = WiFi.begin(ssid, pass);
   }
 
   // print the SSID of the network you're attached to:
@@ -123,23 +136,9 @@ void wifiConnect(char ssid[], char pass[]) {
   Serial.println(ip);
 }
 
-void printData() {
-  long rssi;
-
-  Serial.println("Board Information:");
-
-  // print your board's IP address:
-  IPAddress ip = WiFi.localIP();
-  Serial.print("IP Address: ");
-  Serial.println(ip);
-  Serial.println();
-  Serial.println("Network Information:");
-  Serial.print("SSID: ");
-  Serial.println(WiFi.SSID());
-
-
-  // print the received signal strength:
-  rssi = WiFi.RSSI();
-  Serial.print("signal strength (RSSI):");
-  Serial.println(rssi);
+void printStatusCode(int statusCode, String message) {
+  Serial.print("Status code: ");
+  Serial.print(statusCode);
+  Serial.print(", Response: ");
+  Serial.println(message);
 }

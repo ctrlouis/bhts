@@ -1,0 +1,13 @@
+const float SENSOR_VOLTAGE = 3.3;
+const int ANALOG_READ_RESOLUTION = 1O; // more information here : https://www.arduino.cc/reference/en/language/functions/zero-due-mkr-family/analogreadresolution/
+
+// WIFI
+const char[] SECRET_WIFI_SSID = "wifi-ssid";
+const char[] SECRET_WIFI_PASS = "wifi-password";
+
+// INFLUXDB CONNECTION
+#define SECRET_INFLUXDB_ADDRESS "127.0.0.1"
+#define SECRET_INFLUXDB_PORT 8086
+#define SECRET_INFLUXDB_ORG "org"
+#define SECRET_INFLUXDB_BUCKET "bucket"
+#define SECRET_INFLUXDB_TOKEN "your-secret-token"
