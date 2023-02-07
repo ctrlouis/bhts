@@ -1,34 +1,14 @@
+#include <WiFiNINA.h> // https://www.arduino.cc/reference/en/libraries/wifinina/
+
+// https://github.com/arduino-libraries/ArduinoHttpClient
 #ifndef ArduinoHttpClient_h
 #define ArduinoHttpClient_h
-#include "HttpClient.h"
-#include "WebSocketClient.h"
+  #include "HttpClient.h"
+  #include "WebSocketClient.h"
 #endif
 
-#include <WiFiNINA.h>
-#include "arduino_secrets.h"
-
-#define INFLUXDB_URL "http://localhost:8086"
-#define INFLUXDB_ORG "bhts"
-#define INFLUXDB_BUCKET "arduino"
-
-#ifndef TemperatureSensor_h
-#define TemperatureSensor_h
-#include "Arduino.h"
-
-class TemperatureSensor {
-  public:
-    int pin;
-    String location;
-    float temperature;    
-    TemperatureSensor(int p, String l) {
-      pin = p;
-      location = l;      
-      temperature = 999;
-    }
-};
-#endif
-
-const float maxVoltage = 3.3;
+#include "arduino_env.h"
+#include "TemperatureSensor.h"
 
 // wifi setup
 char ssid[] = SECRET_WIFI_SSID;
@@ -46,13 +26,13 @@ char serverAddress[15] = "192.168.1.21";  // server address
 int port = 8086;
 
 WiFiClient wifi;
-HttpClient client = HttpClient(wifi, serverAddress, port);
+HttpClient client = HttpClient(wifi, SECRET_INFLUXDB_ADDRESS, SECRET_INFLUXDB_PORT);
 
 void setup() {
   // Initialize serial and wait for port to open:
   Serial.begin(9600);
   while (!Serial);
-  wifiConnectt(ssid, pass);
+  wifiConnect(ssid, pass);
 }
 
 void loop() { 
@@ -61,19 +41,19 @@ void loop() {
   Serial.println(temperatureSensorSize);
   
   for (int i = 0; i < 1; i++) {
-    temperatures[i] = getTemperature(sensors[i].pin, maxVoltage);
+    temperatures[i] = getTemperature(sensors[i].pin, SENSOR_VOLTAGE);
     printTemperature(temperatures[i]);
-    saveTemp(sensors[i].pin, temperatures[i]);
+    saveTemp(sensors[i].pin, temperatures[i], false);
   }
   delay(500);
 }
 
-float getTemperature(int pin, float maxVoltage) {
+float getTemperature(int pin, float SENSOR_VOLTAGE) {
   int sensorVal;
   float voltage, temperature;
   
   sensorVal = analogRead(pin);
-  voltage = (sensorVal/1024.0) * maxVoltage;
+  voltage = (sensorVal/1024.0) * SENSOR_VOLTAGE;
   temperature = (voltage - .5) * 100;
   return temperature;
 }
@@ -86,16 +66,16 @@ void printTemperature(float temperature) {
   Serial.println(message);
 }
 
-void saveTemp(int sensorPin, float temperature) {
+void saveTemp(int sensorPin, float temperature, bool waitResponse) {
   String authHeader, data, path;
   
   authHeader = "Token ";
   authHeader += SECRET_INFLUXDB_TOKEN;
   
   path = "/api/v2/write?bucket=";
-  path += INFLUXDB_BUCKET;
+  path += SECRET_INFLUXDB_BUCKET;
   path+= "&org=";
-  path += INFLUXDB_ORG;
+  path += SECRET_INFLUXDB_ORG;
   path += "&precision=ns";
 
   data = "temperaturesSensors,sensorPin=";
@@ -112,17 +92,19 @@ void saveTemp(int sensorPin, float temperature) {
   client.print(data);
   client.endRequest();
 
-  // read the status code and body of the response
-  int statusCode = client.responseStatusCode();
-  String response = client.responseBody();
-
-  Serial.print("Status code: ");
-  Serial.print(statusCode);
-  Serial.print(", Response: ");
-  Serial.println(response);
+  if (waitResponse = true) {
+    // read the status code and body of the response
+    int statusCode = client.responseStatusCode();
+    String response = client.responseBody();
+    Serial.print("Status code: ");
+    Serial.print(statusCode);
+    Serial.print(", Response: ");
+    Serial.println(response);
+  }
+  
 }
 
-void wifiConnectt(char ssid[], char pass[]) {
+void wifiConnect(char ssid[], char pass[]) {
   while ( status != WL_CONNECTED) {
     Serial.print("Attempting to connect to Network named: ");
     Serial.println(ssid);                   // print the network name (SSID);
@@ -139,26 +121,6 @@ void wifiConnectt(char ssid[], char pass[]) {
   IPAddress ip = WiFi.localIP();
   Serial.print("IP Address: ");
   Serial.println(ip);
-}
-
-void wifiConnect(char ssid[], char pass[]) {
-  // attempt to connect to Wifi network:
-  while (status != WL_CONNECTED) {
-    Serial.print("Attempting to connect to network: ");
-    Serial.println(ssid);
-    
-    // Connect to WPA/WPA2 network:
-    status = WiFi.begin(ssid, pass);
-
-    // wait 5 seconds for connection:
-    delay(5000);
-  }
-
-  // you're connected now, so print out the data:
-  Serial.println("You're connected to the network");
-  Serial.println("----------------------------------------");
-  printData();
-  Serial.println("----------------------------------------");
 }
 
 void printData() {
