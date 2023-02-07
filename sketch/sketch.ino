@@ -1,9 +1,7 @@
 #ifndef ArduinoHttpClient_h
 #define ArduinoHttpClient_h
-
 #include "HttpClient.h"
 #include "WebSocketClient.h"
-
 #endif
 
 #include <WiFiNINA.h>
@@ -13,17 +11,38 @@
 #define INFLUXDB_ORG "bhts"
 #define INFLUXDB_BUCKET "arduino"
 
+#ifndef TemperatureSensor_h
+#define TemperatureSensor_h
+#include "Arduino.h"
+
+class TemperatureSensor {
+  public:
+    int pin;
+    String location;
+    float temperature;    
+    TemperatureSensor(int p, String l) {
+      pin = p;
+      location = l;      
+      temperature = 999;
+    }
+};
+#endif
+
+const float maxVoltage = 3.3;
+
 // wifi setup
 char ssid[] = SECRET_WIFI_SSID;
 char pass[] = SECRET_WIFI_PASS;
 int status = WL_IDLE_STATUS;
 
 // temperature sensor setup
-const int sensorPin = A0;
-const float maxVoltage = 3.3;
+TemperatureSensor const sensors[1] = {
+  TemperatureSensor(A0, "outside"),
+};
+const int temperatureSensorSize = sizeof(sensors) / sizeof(sensors[0]);
 float temp;
 
-char serverAddress[] = "192.168.1.21";  // server address
+char serverAddress[15] = "192.168.1.21";  // server address
 int port = 8086;
 
 WiFiClient wifi;
@@ -34,15 +53,19 @@ void setup() {
   Serial.begin(9600);
   while (!Serial);
   wifiConnectt(ssid, pass);
-  
 }
 
 void loop() { 
-  float temperature;
-
-  temperature = getTemperature(sensorPin, maxVoltage);
-  printTemperature(temperature);
-  saveTemp(temperature);
+  float temperatures[sizeof(sensors)];
+  Serial.print("sizeof(sensors) = ");
+  Serial.println(temperatureSensorSize);
+  
+  for (int i = 0; i < 1; i++) {
+    temperatures[i] = getTemperature(sensors[i].pin, maxVoltage);
+    printTemperature(temperatures[i]);
+    saveTemp(sensors[i].pin, temperatures[i]);
+  }
+  delay(500);
 }
 
 float getTemperature(int pin, float maxVoltage) {
@@ -63,12 +86,18 @@ void printTemperature(float temperature) {
   Serial.println(message);
 }
 
-void saveTemp(float temperature) {
+void saveTemp(int sensorPin, float temperature) {
   String authHeader, data, path;
   
   authHeader = "Token ";
   authHeader += SECRET_INFLUXDB_TOKEN;
-  path = "/api/v2/write?bucket=arduino&org=bhts&precision=ns";
+  
+  path = "/api/v2/write?bucket=";
+  path += INFLUXDB_BUCKET;
+  path+= "&org=";
+  path += INFLUXDB_ORG;
+  path += "&precision=ns";
+
   data = "temperaturesSensors,sensorPin=";
   data += String(sensorPin);
   data += ",sensorLocation=in temperature=";
