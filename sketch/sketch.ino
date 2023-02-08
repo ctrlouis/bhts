@@ -28,12 +28,14 @@ WiFiClient wifi;
 HttpClient influxClient = HttpClient(wifi, SECRET_INFLUXDB_ADDRESS, SECRET_INFLUXDB_PORT);
 
 void setup() {
+  digitalWrite(0, LOW);
   analogReadResolution(ANALOG_READ_RESOLUTION);
   bool dbAvailable = false;
   // Initialize serial and wait for port to open:
   Serial.begin(9600);
   while (!Serial);
   wifiConnect(SECRET_WIFI_SSID, SECRET_WIFI_PASS);
+  digitalWrite(0, HIGH);
 
   while (!dbAvailable) {
     dbAvailable = testInfluxAccess();
