@@ -21,7 +21,7 @@ TemperatureSensor const sensors[1] = {
 };
 const int temperatureSensorSize = sizeof(sensors) / sizeof(sensors[0]);
 
-char serverAddress[15] = "192.168.1.21";  // server address
+char serverAddress[15] = "192.168.1.21"; // server address
 int port = 8086;
 
 WiFiClient wifi;
