@@ -8,24 +8,24 @@
 #endif
 
 #include "arduino_env.h"
+#include "Led.h"
 #include "TemperatureSensor.h"
-
-const float maxAnalogValue = pow(2 ,ANALOG_READ_RESOLUTION);
 
 // wifi setup
 int statusWifi = WL_IDLE_STATUS;
+WiFiClient wifi;
+
+// influx setup
+HttpClient influxClient = HttpClient(wifi, SECRET_INFLUXDB_ADDRESS, SECRET_INFLUXDB_PORT);
+
+// led setup
+Led ledWifi = Led(0, OUTPUT, HIGH);
 
 // temperature sensor setup
-TemperatureSensor const sensors[1] = {
+TemperatureSensor sensors[1] = {
   TemperatureSensor(A0, "outside"),
 };
 const int temperatureSensorSize = sizeof(sensors) / sizeof(sensors[0]);
-
-char serverAddress[15] = "192.168.1.21"; // server address
-int port = 8086;
-
-WiFiClient wifi;
-HttpClient influxClient = HttpClient(wifi, SECRET_INFLUXDB_ADDRESS, SECRET_INFLUXDB_PORT);
 
 void setup() {
   digitalWrite(0, LOW);
@@ -35,7 +35,7 @@ void setup() {
   Serial.begin(9600);
   while (!Serial);
   wifiConnect(SECRET_WIFI_SSID, SECRET_WIFI_PASS);
-  digitalWrite(0, HIGH);
+  ledWifi.high();
 
   while (!dbAvailable) {
     dbAvailable = testInfluxAccess();
@@ -46,29 +46,12 @@ void loop() {
   float temperatures[sizeof(sensors)];
   
   for (int i = 0; i < 1; i++) {
-    temperatures[i] = getTemperature(sensors[i].pin, SENSOR_VOLTAGE);
-    printTemperature(temperatures[i]);
-    saveTemp(sensors[i].pin, temperatures[i], false);
+    sensors[i].readTemperature();
+    // temperatures[i] = getTemperature(sensors[i].getPin(), SENSOR_VOLTAGE);
+    Serial.println(sensors[i].toString());
+    // saveTemp(sensors[i].getPin(), temperatures[i], false);
   }
   delay(500);
-}
-
-float getTemperature(int pin, float SENSOR_VOLTAGE) {
-  int sensorVal;
-  float voltage, temperature;
-  
-  sensorVal = analogRead(pin);
-  voltage = (sensorVal/maxAnalogValue) * SENSOR_VOLTAGE;
-  temperature = (voltage - .5) * 100;
-  return temperature;
-}
-
-void printTemperature(float temperature) {
-  String message;
-
-  message = String(temperature);
-  message += "°C";
-  Serial.println(message);
 }
 
 bool testInfluxAccess() {
