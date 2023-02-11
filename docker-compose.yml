@@ -22,8 +22,8 @@ services:
             - 3000:3000
         volumes:
             - ./datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
-            # - ./dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
-            # - ./dashboard.json:/etc/grafana/provisioning/dashboards/dashboard.json
+            - ./dashboard.yml:/etc/grafana/provisioning/dashboards/dashboard.yml
+            - ./dashboard.json:/etc/grafana/provisioning/dashboards/dashboard.json
         links:
             - influxdb
         depends_on:
