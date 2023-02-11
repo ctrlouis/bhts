@@ -11,7 +11,6 @@ class Led {
     void setState();
 
   public:
-    
     Led(int p, int pos, int initialState) {
       pin = p;
       direction = pos;
@@ -22,6 +21,7 @@ class Led {
 
     void high();
     void low();
+    void toggle();
 
     int getPin();
     int getPosition();
@@ -36,6 +36,20 @@ void Led::high() {
 
 void Led::low() {
   state = LOW;
+  digitalWrite(pin, state);
+}
+
+void Led::toggle() {
+  switch (state) {
+    case LOW:
+      state = HIGH;
+      break;
+    case HIGH:
+      state = LOW;
+      break;
+    default:
+      break;
+  }
   digitalWrite(pin, state);
 }
 
