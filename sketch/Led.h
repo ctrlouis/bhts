@@ -1,12 +1,11 @@
 #ifndef Led_h
 #define Led_h
-#include "Arduino.h"
 
 class Led {
 
   private:
     int pin;
-    int position;
+    int direction;
     int state;
 
     void setState();
@@ -15,9 +14,9 @@ class Led {
     
     Led(int p, int pos, int initialState) {
       pin = p;
-      position = pos;
+      direction = pos;
       state = initialState;
-      pinMode(pin, position);
+      pinMode(pin, direction);
       digitalWrite(pin, state);
     }
 
@@ -45,7 +44,7 @@ int Led::getPin() {
 }
 
 int Led::getPosition() {
-  return position;
+  return direction;
 }
 
 int Led::getState() {
@@ -55,4 +54,5 @@ int Led::getState() {
 void Led::setState() {
   digitalWrite(pin, state);
 }
+
 #endif

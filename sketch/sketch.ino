@@ -19,35 +19,32 @@ WiFiClient wifi;
 HttpClient influxClient = HttpClient(wifi, SECRET_INFLUXDB_ADDRESS, SECRET_INFLUXDB_PORT);
 
 // led setup
-Led ledWifi = Led(0, OUTPUT, HIGH);
+Led ledWifi = Led(0, OUTPUT, LOW);
 
 // temperature sensor setup
 TemperatureSensor sensors[1] = {
   TemperatureSensor(A0, "outside"),
 };
-const int temperatureSensorSize = sizeof(sensors) / sizeof(sensors[0]);
+const int sensorsSize = sizeof(sensors) / sizeof(sensors[0]);
 
 void setup() {
-  digitalWrite(0, LOW);
   analogReadResolution(ANALOG_READ_RESOLUTION);
   bool dbAvailable = false;
   // Initialize serial and wait for port to open:
   Serial.begin(9600);
   while (!Serial);
   wifiConnect(SECRET_WIFI_SSID, SECRET_WIFI_PASS);
-  ledWifi.high();
 
   while (!dbAvailable) {
     dbAvailable = testInfluxAccess();
+    delay(250);
   }
+  ledWifi.high();
 }
 
 void loop() {
-  float temperatures[sizeof(sensors)];
-  
-  for (int i = 0; i < 1; i++) {
+  for (int i = 0; i < sensorsSize; i++) {
     sensors[i].readTemperature();
-    // temperatures[i] = getTemperature(sensors[i].getPin(), SENSOR_VOLTAGE);
     Serial.println(sensors[i].toString());
     // saveTemp(sensors[i].getPin(), temperatures[i], false);
   }
@@ -68,39 +65,39 @@ bool testInfluxAccess() {
   return available;
 }
 
-void saveTemp(int sensorPin, float temperature, bool waitResponse) {
-  String authHeader, data, path;
+// void saveTemp(int sensorPin, float temperature, bool waitResponse) {
+//   String authHeader, data, path;
   
-  authHeader = "Token ";
-  authHeader += SECRET_INFLUXDB_TOKEN;
+//   authHeader = "Token ";
+//   authHeader += SECRET_INFLUXDB_TOKEN;
   
-  path = "/api/v2/write?bucket=";
-  path += SECRET_INFLUXDB_BUCKET;
-  path+= "&org=";
-  path += SECRET_INFLUXDB_ORG;
-  path += "&precision=ns";
+//   path = "/api/v2/write?bucket=";
+//   path += SECRET_INFLUXDB_BUCKET;
+//   path+= "&org=";
+//   path += SECRET_INFLUXDB_ORG;
+//   path += "&precision=ns";
 
-  data = "temperaturesSensors,sensorPin=";
-  data += String(sensorPin);
-  data += ",sensorLocation=in temperature=";
-  data += temperature;
+//   data = "temperaturesSensors,sensorPin=";
+//   data += String(sensorPin);
+//   data += ",sensorLocation=in temperature=";
+//   data += temperature;
 
-  influxClient.beginRequest();
-  influxClient.post(path);
-  influxClient.sendHeader("Content-Type", "text/plain");
-  influxClient.sendHeader("Content-Length", data.length());
-  influxClient.sendHeader("Authorization", authHeader);
-  influxClient.beginBody();
-  influxClient.print(data);
-  influxClient.endRequest();
+//   influxClient.beginRequest();
+//   influxClient.post(path);
+//   influxClient.sendHeader("Content-Type", "text/plain");
+//   influxClient.sendHeader("Content-Length", data.length());
+//   influxClient.sendHeader("Authorization", authHeader);
+//   influxClient.beginBody();
+//   influxClient.print(data);
+//   influxClient.endRequest();
 
-  if (waitResponse == true) {
-    int statusCode = influxClient.responseStatusCode();
-    String response = influxClient.responseBody();
-    printStatusCode(statusCode, response);
-  }
+//   if (waitResponse == true) {
+//     int statusCode = influxClient.responseStatusCode();
+//     String response = influxClient.responseBody();
+//     printStatusCode(statusCode, response);
+//   }
 
-}
+// }
 
 void wifiConnect(char ssid[], char pass[]) {
   while ( statusWifi != WL_CONNECTED) {
@@ -121,9 +118,9 @@ void wifiConnect(char ssid[], char pass[]) {
   Serial.println(ip);
 }
 
-void printStatusCode(int statusCode, String message) {
-  Serial.print("Status code: ");
-  Serial.print(statusCode);
-  Serial.print(", Response: ");
-  Serial.println(message);
-}
+// void printStatusCode(int statusCode, String message) {
+//   Serial.print("Status code: ");
+//   Serial.print(statusCode);
+//   Serial.print(", Response: ");
+//   Serial.println(message);
+// }

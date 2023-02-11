@@ -1,7 +1,6 @@
 #ifndef TemperatureSensor_h
 #define TemperatureSensor_h
 #include "arduino_env.h"
-// #include "Arduino.h"
 
 class TemperatureSensor {
 
@@ -12,8 +11,7 @@ class TemperatureSensor {
 
   public:
     TemperatureSensor(int p, String l) {
-      Serial.println(p);
-      pin = p;
+      pin = A0;
       location = l;      
       temperature = 999;
     }
@@ -28,13 +26,11 @@ class TemperatureSensor {
 
 void TemperatureSensor::readTemperature() {
   int sensorVal;
-  float voltage, temperature;
+  float voltage;
   
   sensorVal = analogRead(pin);
-  Serial.println("pin");
   voltage = (sensorVal/ANALOG_MAX_VALUE) * SENSOR_VOLTAGE;
   temperature = (voltage - .5) * 100;
-  Serial.println("read temperature");
 }
 
 String TemperatureSensor::toString() {
@@ -63,4 +59,5 @@ String TemperatureSensor::getLocation() {
 float TemperatureSensor::getTemperature() {
   return temperature;
 }
+
 #endif
