@@ -8,24 +8,28 @@ class Led {
     int direction;
     int state;
 
-    void setState();
-
   public:
-    Led(int p, int pos, int initialState) {
+    Led(int p, int d, int initialState = LOW) {
       pin = p;
-      direction = pos;
+      direction = d;
       state = initialState;
       pinMode(pin, direction);
-      digitalWrite(pin, state);
+      if (direction == OUTPUT) {
+        digitalWrite(pin, state);
+      }
     }
 
     void high();
     void low();
     void toggle();
+    int read();
+    bool isHigh();
+    bool isLow();
 
     int getPin();
-    int getPosition();
-    int getState();
+    int getDirection();
+    int getLastState();
+    void setState();
     
 };
 
@@ -47,21 +51,29 @@ void Led::toggle() {
     case HIGH:
       state = LOW;
       break;
-    default:
-      break;
   }
   digitalWrite(pin, state);
+}
+
+int Led::read() {
+  state = digitalRead(pin);
+  return state;
+}
+
+bool Led::isHigh() {
+  Led::read();
+  return state == HIGH;
 }
 
 int Led::getPin() {
   return pin;
 }
 
-int Led::getPosition() {
+int Led::getDirection() {
   return direction;
 }
 
-int Led::getState() {
+int Led::getLastState() {
   return state;
 }
 
