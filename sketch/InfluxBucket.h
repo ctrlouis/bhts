@@ -45,7 +45,6 @@ bool InfluxBucket::addRow(String name, int pin, String location, float temperatu
   rows += " ";
   rows += "temperature=";
   rows += temperature;
-  Serial.print("Row : ");
 }
 
 void InfluxBucket::clearRow() {
@@ -65,8 +64,6 @@ bool InfluxBucket::write(HttpClient &client, bool waitResponse = false) {
   path += org;
   path += "&precision=";
   path += precision;
-
-  Serial.println(rows);
 
   client.beginRequest();
   client.post(path);
