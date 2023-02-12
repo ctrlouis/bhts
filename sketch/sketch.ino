@@ -82,11 +82,9 @@ void loop() {
   if (record) {
     for (int i = 0; i < sensorsSize; i++) {
       sensors[i].readTemperature();
-      // Serial.println(sensors[i].toString());
+      Serial.println(sensors[i].toString());
       arduinoBucket.addRow("temperatureSensors", sensors[i].getPin(), sensors[i].getLocation(), sensors[i].getTemperature());
     }
-    Serial.println(arduinoBucket.getRows());
-    Serial.println("======================================================================================================");
     arduinoBucket.write(influxClient);
     arduinoBucket.clearRow();
   }
