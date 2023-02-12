@@ -62,7 +62,7 @@ void loop() {
       recordChange = true;
       pauseLed.low();
       recordLed.high();
-    } else if (!recordChange && !record) {
+    } else if (!recordChange && record) {
       stopCounter++;
     }
     if (stopCounter > 4) {
