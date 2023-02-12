@@ -11,7 +11,7 @@ class TemperatureSensor {
 
   public:
     TemperatureSensor(int p, String l) {
-      pin = A0;
+      pin = p;
       location = l;      
       temperature = 999;
     }
