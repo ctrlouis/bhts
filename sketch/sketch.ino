@@ -28,8 +28,10 @@ Led wifiLed = Led(2, OUTPUT, LOW);
 Led button = Led(3, INPUT);
 
 // temperature sensor setup
-TemperatureSensor sensors[1] = {
+TemperatureSensor sensors[2] = {
   TemperatureSensor(A0, "outside"),
+  TemperatureSensor(A1, "inside_isolation"),
+  // TemperatureSensor(A2, "inside_no_isolation"),
 };
 const int sensorsSize = sizeof(sensors) / sizeof(sensors[0]);
 
@@ -66,6 +68,7 @@ void loop() {
       stopCounter++;
     }
     if (stopCounter > 4) {
+        stopCounter = 0;
         record = false;
         recordChange = true;
         pauseLed.high();
@@ -79,11 +82,13 @@ void loop() {
   if (record) {
     for (int i = 0; i < sensorsSize; i++) {
       sensors[i].readTemperature();
-      Serial.println(sensors[i].toString());
+      // Serial.println(sensors[i].toString());
       arduinoBucket.addRow("temperatureSensors", sensors[i].getPin(), sensors[i].getLocation(), sensors[i].getTemperature());
-      arduinoBucket.write(influxClient);
-      arduinoBucket.clearRow();
-    }    
+    }
+    Serial.println(arduinoBucket.getRows());
+    Serial.println("======================================================================================================");
+    arduinoBucket.write(influxClient);
+    arduinoBucket.clearRow();
   }
   delay(500);
 }

@@ -34,9 +34,14 @@ class InfluxBucket {
 
     String getOrg();
     String getBucket();
+    String getRows();
 };
 
+// SPECIFIC TO MY USAGE should be change
 bool InfluxBucket::addRow(String name, int pin, String location, float temperature) {
+  if (rows != "") {
+    rows += "\n";
+  }
   rows += name;
   rows += ",sensorPin=";
   rows += String(pin);
@@ -106,6 +111,10 @@ String InfluxBucket::getOrg() {
 
 String InfluxBucket::getBucket() {
   return bucket;
+}
+
+String InfluxBucket::getRows() {
+  return rows;
 }
 
 #endif
