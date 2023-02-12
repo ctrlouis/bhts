@@ -28,10 +28,10 @@ Led wifiLed = Led(2, OUTPUT, LOW);
 Led button = Led(3, INPUT);
 
 // temperature sensor setup
-TemperatureSensor sensors[2] = {
+TemperatureSensor sensors[3] = {
   TemperatureSensor(A0, "outside"),
   TemperatureSensor(A1, "inside_isolation"),
-  // TemperatureSensor(A2, "inside_no_isolation"),
+  TemperatureSensor(A2, "inside_no_isolation"),
 };
 const int sensorsSize = sizeof(sensors) / sizeof(sensors[0]);
 
